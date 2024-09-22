@@ -10,4 +10,4 @@ __pycache__/
 *.sublime-*
 
 .venv
-venv/
+venv
