@@ -5,12 +5,14 @@ import io
 class HttpProtocol(asyncio.Protocol):
 
 
-    def __init__(self, request_handler) -> None:
+    def __init__(self, request_handler, event: asyncio.Event) -> None:
         self.conn = h11.Connection(h11.SERVER)
         self.transport = None
         self.request_handler =request_handler
         self.current_request = None
         self.current_request_body = None
+        self.shutdown_event = event
+        asyncio.create_task(self.close())
 
 
     def connection_made(self, transport: asyncio.Transport):
@@ -81,12 +83,17 @@ class HttpProtocol(asyncio.Protocol):
 
     def write_to_transport(self, data):
         # @TODO stream of data, If large chunk of data
-        if not self.transport.shutdown_event.is_set():  # Only write if not shutting down
+        if not self.shutdown_event.is_set():  # Only write if not shutting down
             self.transport.write(data)
             self.conn.start_next_cycle()
-
         return
+    
+    async def close(self):
+        # this coroutine should run is background
+        while True:
+            if self.shutdown_event.is_set():
+                pass
 
     def _send_error_response(self):
-        # @TODO 
+        # @TODO
         pass

@@ -8,12 +8,13 @@ class HttpTransport:
         self.port = port
         self.request_handler = request_handler
         self.shutdown_event = asyncio.Event()
+        self.shutdown_event.clear()
     
     async def start_and_listen(self):
         loop = asyncio.get_event_loop()
         self._loop = loop
         self.server = await loop.create_server(
-            lambda: HttpProtocol(self.request_handler),
+            lambda: HttpProtocol(self.request_handler, self.shutdown_event),
             host=self.host,
             port=self.port
         )

@@ -5,7 +5,6 @@ class WebApp:
 
     def __init__(self) -> None:
         self.transport = None
-        self.shutdown_event = asyncio.Event()
 
     def run(self, host, port, protocol = "http"):
         try:
@@ -25,7 +24,7 @@ class WebApp:
         )
 
     async def shutdown(self):
-        self.shutdown_event.set()
+        print("Manual shutdown")
 
         if self.transport:
             await self.transport.close()
