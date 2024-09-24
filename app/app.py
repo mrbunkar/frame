@@ -5,10 +5,11 @@ class WebApp:
 
     def __init__(self) -> None:
         self.transport = None
+        self._loop = asyncio.get_event_loop()
 
     def run(self, host, port, protocol = "http"):
         try:
-            asyncio.run(self.listen_and_server(host, port, protocol))
+            self._loop.run_until_complete(self.listen_and_server(host, port, protocol)) # this is the task that is pending
         except KeyboardInterrupt:
             print("Received exit signal. Shutting down gracefully...")
             asyncio.run(self.shutdown())
@@ -23,11 +24,16 @@ class WebApp:
             transport_type= protocol
         )
 
+        await self.transport.start_and_listen()
+
     async def shutdown(self):
         print("Manual shutdown")
-
         if self.transport:
-            await self.transport.close()
+            try:
+                await self.transport.close()
+            except Exception as err:
+                print("Error1:", err)
+        self._loop.close()
     
     def add_routes(func, methods: list):
         pass

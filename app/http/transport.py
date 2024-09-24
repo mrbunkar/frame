@@ -31,9 +31,10 @@ class HttpTransport:
         pass
     
     async def close(self):
+        print("Closing")
         self.shutdown_event.set()
-
+        
         if self.server:
+            await self.server.wait_closed()
             self.server.close()
-            await self._loop.run_until_complete(self.server.wait_closed())
-        self._loop.stop()
+        self._loop.close()

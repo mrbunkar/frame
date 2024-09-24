@@ -12,7 +12,7 @@ class HttpProtocol(asyncio.Protocol):
         self.current_request = None
         self.current_request_body = None
         self.shutdown_event = event
-        asyncio.create_task(self.close())
+        self.loop = asyncio.get_event_loop()
 
 
     def connection_made(self, transport: asyncio.Transport):
@@ -22,6 +22,7 @@ class HttpProtocol(asyncio.Protocol):
 
 
     def data_received(self, data: bytes) -> None:
+        
         self.conn.receive_data(data)
 
         while True:
@@ -38,7 +39,8 @@ class HttpProtocol(asyncio.Protocol):
         elif isinstance(event, h11.Data):
             self.current_request_body += event.data
         elif isinstance(event, h11.EndOfMessage):
-            asyncio.create_task(self.process_request())
+            
+            self.loop.create_task(self.process_request())
 
     async def process_request(self):
         if self.current_request:
@@ -60,6 +62,7 @@ class HttpProtocol(asyncio.Protocol):
 
 
     def send_response(self, response_data: dict):
+
         headers = [
             ("Content-Type", response_data.get("content_type")),
             ("Content-Length", str(len(response_data["body"]))),
@@ -88,11 +91,17 @@ class HttpProtocol(asyncio.Protocol):
             self.conn.start_next_cycle()
         return
     
-    async def close(self):
+    async def connection_lost(self):
+        # @TODO closing the shutdown gracefully
+        # How to run the coroutines
         # this coroutine should run is background
         while True:
+            print("Something")
             if self.shutdown_event.is_set():
-                pass
+                self.loop.close()
+                self.transport.close()
+                return
+            asyncio.sleep(0.1)
 
     def _send_error_response(self):
         # @TODO

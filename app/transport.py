@@ -28,7 +28,6 @@ class Transport:
                 port=port,
                 request_handler=handle_request
             )
-            await transport.start_and_listen()
             return transport
         elif transport_type == "WebSocket":
             logging.warning("WebSocket transport not implemented yet")
