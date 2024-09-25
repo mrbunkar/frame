@@ -14,7 +14,7 @@ class HttpTransport:
         loop = asyncio.get_event_loop()
         self._loop = loop
         self.server = await loop.create_server(
-            lambda: HttpProtocol(self.request_handler, self.shutdown_event),
+            lambda: HttpProtocol(self.request_handler, self.shutdown_event, self._loop),
             host=self.host,
             port=self.port
         )
@@ -37,4 +37,3 @@ class HttpTransport:
         if self.server:
             await self.server.wait_closed()
             self.server.close()
-        self._loop.close()

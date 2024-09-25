@@ -5,14 +5,14 @@ import io
 class HttpProtocol(asyncio.Protocol):
 
 
-    def __init__(self, request_handler, event: asyncio.Event) -> None:
+    def __init__(self, request_handler, event: asyncio.Event,loop: asyncio.BaseEventLoop) -> None:
         self.conn = h11.Connection(h11.SERVER)
         self.transport = None
         self.request_handler =request_handler
         self.current_request = None
         self.current_request_body = None
         self.shutdown_event = event
-        self.loop = asyncio.get_event_loop()
+        self.loop = loop
 
 
     def connection_made(self, transport: asyncio.Transport):
@@ -22,7 +22,7 @@ class HttpProtocol(asyncio.Protocol):
 
 
     def data_received(self, data: bytes) -> None:
-        
+        print("Data recieved")
         self.conn.receive_data(data)
 
         while True:
@@ -39,7 +39,6 @@ class HttpProtocol(asyncio.Protocol):
         elif isinstance(event, h11.Data):
             self.current_request_body += event.data
         elif isinstance(event, h11.EndOfMessage):
-            
             self.loop.create_task(self.process_request())
 
     async def process_request(self):
@@ -87,22 +86,29 @@ class HttpProtocol(asyncio.Protocol):
     def write_to_transport(self, data):
         # @TODO stream of data, If large chunk of data
         if not self.shutdown_event.is_set():  # Only write if not shutting down
-            self.transport.write(data)
-            self.conn.start_next_cycle()
+            try:
+                print("Bytes: ", data)
+                self.transport.write(data)
+                self.conn.start_next_cycle()
+                self.transport.write_eof() # to close the connection
+            except Exception as err:
+                self._send_error_response(500, "Internal Server Error")
         return
     
-    async def connection_lost(self):
+    def connection_lost(self, exc):
         # @TODO closing the shutdown gracefully
         # How to run the coroutines
         # this coroutine should run is background
-        while True:
-            print("Something")
-            if self.shutdown_event.is_set():
-                self.loop.close()
-                self.transport.close()
-                return
-            asyncio.sleep(0.1)
+        # while True:
+        #     print("Something")
+        #     if self.shutdown_event.is_set():
+        #         self.transport.close()
+        #         return
+        #     asyncio.sleep(0.1)
 
-    def _send_error_response(self):
+        print("Request completed")
+
+    def _send_error_response(self, status_code, message):
         # @TODO
+
         pass
