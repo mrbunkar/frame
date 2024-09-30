@@ -1,11 +1,13 @@
 from .transport import Transport
 import asyncio
+from .router.handler import Router
 
 class WebApp:
 
     def __init__(self) -> None:
         self.transport = None
         self.loop = asyncio.get_event_loop()
+        self.router = Router()
        
     def run(self, host, port, protocol="http"):
         try:
@@ -23,10 +25,10 @@ class WebApp:
         self.transport = await Transport.server(
             host=self.host,
             port = self.port,
-            transport_type= protocol
+            transport_type= protocol,
+            handler = self.manage_request
         )
 
-        # Start listening in an awaitable context
         await self.transport.start_and_listen()
 
     async def shutdown(self):
@@ -36,8 +38,15 @@ class WebApp:
                 await self.transport.close()
             except Exception as err:
                 print("Error during transport close:", err)
-    
-    def add_routes(func, methods: list):
+
+    async def manage_request(self):
+
+        """
+        
+        """
+
+        #  @TODO support for middleware
+        
         pass
 
     @property

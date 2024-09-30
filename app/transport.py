@@ -1,6 +1,5 @@
 import asyncio
 from .http.transport import HttpTransport
-from .router.handler import handle_request
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,7 +16,7 @@ class Transport:
         pass
 
     @staticmethod
-    async def server(host, port, transport_type = "http"):
+    async def server(host, port, transport_type = "http", handler = None):
 
         """
         Starts the TCP transport on the given port and host number
@@ -26,7 +25,7 @@ class Transport:
             transport = HttpTransport(
                 host=host, 
                 port=port,
-                request_handler=handle_request
+                request_handler=handler
             )
             return transport
         elif transport_type == "WebSocket":
