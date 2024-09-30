@@ -52,6 +52,8 @@ class HttpProtocol(asyncio.Protocol):
                 'headers': dict(self.current_request.headers),
                 'body': self.current_request_body
             }
+
+            print("Request body type", type(request['body']))
             
             try:
                 data = await self.request_handler(request)
@@ -62,24 +64,31 @@ class HttpProtocol(asyncio.Protocol):
                 self.current_request = None
                 self.current_request_body = None
 
-    def send_response(self, response_data: dict):
-        try:
-            headers = [
+    def prepare_response_byte(self, response_data: dict) -> bytes:
+
+        """
+        Given response body, creates response bytes
+        """
+        headers = [
                 ("Content-Type", response_data.get("content_type", "text/plain")),
                 ("Content-Length", str(len(response_data["body"]))),
             ]
-            response = h11.Response(
-                status_code=response_data["status"],
-                headers=headers,
-            )
-            body = h11.Data(data=response_data['body'].encode())
-            end = h11.EndOfMessage()
+        response = h11.Response(
+            status_code=response_data["status"],
+            headers=headers,
+        )
+        body = h11.Data(data=response_data['body'].encode())
+        end = h11.EndOfMessage()
 
-            data_byte = b"".join([
-                self.conn.send(response),
-                self.conn.send(body),
-                self.conn.send(end)
-            ])
+        return b"".join([
+            self.conn.send(response),
+            self.conn.send(body),
+            self.conn.send(end)
+        ])
+
+    def send_response(self, response_data: dict):
+        try:
+            data_byte = self.prepare_response_byte(response_data)
             self.write_to_transport(data_byte)
         except Exception as e:
             self._handle_error(500, f"Error sending response: {str(e)}")
