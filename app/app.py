@@ -1,23 +1,23 @@
 from .transport import Transport
 import asyncio
 from .router.handler import Router
+import logging
 
 class WebApp:
 
     def __init__(self) -> None:
         self.transport = None
-        self.loop = asyncio.get_event_loop()
         self.router = Router()
        
+
     def run(self, host, port, protocol="http"):
         try:
             asyncio.run(self.listen_and_server(host, port, protocol))
         except KeyboardInterrupt:
             print("Received exit signal. Shutting down gracefully...")
             asyncio.run(self.shutdown())
-        finally:
-            self.loop
     
+
     async def listen_and_server(self, host, port, protocol = "http"):
         self.host = host
         self.port = port
@@ -31,6 +31,7 @@ class WebApp:
 
         await self.transport.start_and_listen()
 
+
     async def shutdown(self):
         print("Manual shutdown")
         if self.transport:
@@ -39,16 +40,31 @@ class WebApp:
             except Exception as err:
                 print("Error during transport close:", err)
 
-    async def manage_request(self):
+
+    async def manage_request(self, request):
 
         """
-        
+        Takes a Request object and gives to middleware and router
         """
 
         #  @TODO support for middleware
         
-        pass
+        try:
+            self.router.handle_request(request)
+        except Exception as err:
+            logging.exception("Exception during request mgmt")
 
     @property
     def address(self):
         return f"{self.host}:{self.port}"
+    
+
+    def add_route(self, method: str, routes: str, callback_func):
+        if method == "GET":
+            self.router.add_get(routes, callback_func)
+        elif method == "POST":
+            self.router.add_post(routes, callback_func)
+        else:
+            # TODO: Defince proper exception
+            raise Exception
+        

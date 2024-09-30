@@ -11,10 +11,11 @@ class Router:
 
     def add_get(self,path:str, func):
         path = "get"+path
-        self.add_route(path.encode())
+        self.add_route(path.encode(), func)
 
-    def add_post(self):
-        pass
+    def add_post(self, path:str, func):
+        path = "post"+path
+        self.add_route(path.encode(), func)
 
     async def handle_request(self,request):
         print("Receieved request:", request)
