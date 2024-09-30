@@ -16,7 +16,7 @@ class Router:
     def add_post(self, path:str, func):
         path = "post"+path
         self.add_route(path.encode(), func)
-
+    
     async def handle_request(self,request):
         print("Receieved request:", request)
 

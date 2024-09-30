@@ -50,9 +50,11 @@ class WebApp:
         #  @TODO support for middleware
         
         try:
-            self.router.handle_request(request)
+            data = await self.router.handle_request(request)
         except Exception as err:
             logging.exception("Exception during request mgmt")
+
+        return data
 
     @property
     def address(self):

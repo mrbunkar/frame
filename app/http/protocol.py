@@ -84,6 +84,7 @@ class HttpProtocol(asyncio.Protocol):
         except Exception as e:
             self._handle_error(500, f"Error sending response: {str(e)}")
 
+
     def write_to_transport(self, data):
         if not self.shutdown_event.is_set():
             try:
