@@ -1,5 +1,5 @@
 from typing import OrderedDict
-
+from app.http import message
 
 class Router:
 
@@ -17,7 +17,7 @@ class Router:
         path = "post"+path
         self.add_route(path.encode(), func)
     
-    async def handle_request(self,request):
+    async def handle_request(self,request: message.Request) -> message.Response:
         print("Receieved request:", request)
 
         return {
