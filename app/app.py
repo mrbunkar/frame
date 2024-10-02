@@ -68,5 +68,7 @@ class WebApp:
             self.router.add_post(routes, callback_func)
         else:
             # TODO: Defince proper exception
-            raise Exception
+            logging.ERROR("Method not supported")
+            raise NotImplementedError("Method not supported")
+
         

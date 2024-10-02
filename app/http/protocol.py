@@ -7,6 +7,7 @@ from .message import Request, Response
 import logging
 
 class HttpProtocol(asyncio.Protocol):
+
     def __init__(self, request_handler, event: asyncio.Event, loop: asyncio.BaseEventLoop) -> None:
         self.h11_conn = h11.Connection(h11.SERVER)
         self.transport = None
@@ -32,7 +33,8 @@ class HttpProtocol(asyncio.Protocol):
                     break
                 self.handle_event(event)
         except Exception as e:
-            self._handle_error(500, f"Error processing request: {str(e)}")
+            logging.error(f"Error processing request: {str(e)}")
+            self._handle_error(500, "Internal Server Error")
 
     def handle_event(self, event):
         try:
@@ -54,9 +56,14 @@ class HttpProtocol(asyncio.Protocol):
             
             try:
                 response = await self.request_handler(request)
+                if not isinstance(response, Response):
+                    self._handle_error(500, "Internal Server Error")
+                    return
+
                 self.send_response(response)
             except Exception as err:
-                self._handle_error(err)
+                logging.error(f"Error processing request: {err}")
+                self._handle_error(500, "Internal Server Error")
             finally:
                 self.current_request = None
                 self.current_request_body = None
@@ -64,23 +71,23 @@ class HttpProtocol(asyncio.Protocol):
 
     def send_response(self, response: Response):
         try:
+            print("Response:", response)
             data_byte = response.bytes(conn=self.h11_conn)
             self.write_to_transport(data_byte)
         except Exception as e:
             logging.error("error sending response",e)
             self._handle_error(500, "Internal Server Error")
 
-
-    def write_to_transport(self, data):
+    def write_to_transport(self, data: bytes):
         if not self.shutdown_event.is_set():
             try:
-                print("Bytes: ", data)
                 self.transport.write(data)
+                # self.transport.write(1)
                 self.h11_conn.start_next_cycle()
                 self.transport.write_eof()  # to close the connection
             except Exception as err:
                 print(f"Error writing to transport: {err}")
-                self._handle_error(500, "Internal Server Error")
+                self.connection_lost()
 
 
     def connection_lost(self, exc):
@@ -90,7 +97,7 @@ class HttpProtocol(asyncio.Protocol):
 
     def _handle_error(self, status_code: int, message:str):
         try:
-
+            print("Calling")
             response = Response(
                 content_type="text/plain",
                 length=len(message),
@@ -100,3 +107,4 @@ class HttpProtocol(asyncio.Protocol):
             self.send_response(response)
         except Exception as e:
             print(f"Error sending error response: {e}")
+            self.connection_lost()

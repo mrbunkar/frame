@@ -1,0 +1,21 @@
+Server running on localhost:3030
+Connection from ('::1', 52537, 0, 0)
+Data received
+Received request: Request(method='GET', target='/', headers={b'host': b'localhost:3030', b'connection': b'keep-alive', b'cache-control': b'max-age=0', b'sec-ch-ua': b'"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"', b'sec-ch-ua-mobile': b'?0', b'sec-ch-ua-platform': b'"macOS"', b'upgrade-insecure-requests': b'1', b'user-agent': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', b'accept': b'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7', b'sec-fetch-site': b'none', b'sec-fetch-mode': b'navigate', b'sec-fetch-user': b'?1', b'sec-fetch-dest': b'document', b'accept-encoding': b'gzip, deflate, br, zstd', b'accept-language': b'en-US,en;q=0.9,hi;q=0.8', b'cookie': b'ext_name=ojplmecpdpgccookcobabopnaifgidhf'}, body=b'', id=2)
+Response: Response(content_type='text/plain', length=21, body=b'Internal Server Error', status_code=500)
+Connection lost
+Connection from ('::1', 52538, 0, 0)
+Data received
+Received request: Request(method='GET', target='/favicon.ico', headers={b'host': b'localhost:3030', b'connection': b'keep-alive', b'sec-ch-ua-platform': b'"macOS"', b'user-agent': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', b'sec-ch-ua': b'"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"', b'sec-ch-ua-mobile': b'?0', b'accept': b'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8', b'sec-fetch-site': b'same-origin', b'sec-fetch-mode': b'no-cors', b'sec-fetch-dest': b'image', b'referer': b'http://localhost:3030/', b'accept-encoding': b'gzip, deflate, br, zstd', b'accept-language': b'en-US,en;q=0.9,hi;q=0.8', b'cookie': b'ext_name=ojplmecpdpgccookcobabopnaifgidhf'}, body=b'', id=2)
+Response: Response(content_type='text/plain', length=21, body=b'Internal Server Error', status_code=500)
+Connection lost
+Connection from ('::1', 52539, 0, 0)
+Connection from ('::1', 52540, 0, 0)
+Data received
+Received request: Request(method='GET', target='/', headers={b'host': b'localhost:3030', b'connection': b'keep-alive', b'cache-control': b'max-age=0', b'sec-ch-ua': b'"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"', b'sec-ch-ua-mobile': b'?0', b'sec-ch-ua-platform': b'"macOS"', b'upgrade-insecure-requests': b'1', b'user-agent': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', b'accept': b'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7', b'sec-fetch-site': b'none', b'sec-fetch-mode': b'navigate', b'sec-fetch-user': b'?1', b'sec-fetch-dest': b'document', b'accept-encoding': b'gzip, deflate, br, zstd', b'accept-language': b'en-US,en;q=0.9,hi;q=0.8', b'cookie': b'ext_name=ojplmecpdpgccookcobabopnaifgidhf'}, body=b'', id=9)
+Response: Response(content_type='text/plain', length=21, body=b'Internal Server Error', status_code=500)
+Connection lost
+Data received
+Received request: Request(method='GET', target='/favicon.ico', headers={b'host': b'localhost:3030', b'connection': b'keep-alive', b'sec-ch-ua-platform': b'"macOS"', b'user-agent': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', b'sec-ch-ua': b'"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"', b'sec-ch-ua-mobile': b'?0', b'accept': b'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8', b'sec-fetch-site': b'same-origin', b'sec-fetch-mode': b'no-cors', b'sec-fetch-dest': b'image', b'referer': b'http://localhost:3030/', b'accept-encoding': b'gzip, deflate, br, zstd', b'accept-language': b'en-US,en;q=0.9,hi;q=0.8', b'cookie': b'ext_name=ojplmecpdpgccookcobabopnaifgidhf'}, body=b'', id=7)
+Response: Response(content_type='text/plain', length=21, body=b'Internal Server Error', status_code=500)
+Connection lost
