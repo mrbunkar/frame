@@ -4,8 +4,10 @@ import random
 
 """
 Define message protocol for internal working of application
-
 """
+
+
+
 @dataclass
 class Request:
     method: str
@@ -14,11 +16,10 @@ class Request:
     body: bytes
     id: int
 
-    def create_bytes(self) -> bytes :
-        """
-        Create a byte represention of the request object 
-        """
-        pass
+
+    def route(self) -> bytes:
+        return f"{self.method}{self.target}"
+
 
     @classmethod
     def create_from_h11(cls, request: h11.Request, body: bytes):
@@ -33,6 +34,7 @@ class Request:
             id = random.randint(1,10)
         )
 
+
 class BaseResonse:
 
     def bytes(self):
@@ -45,6 +47,7 @@ class Response(BaseResonse):
     length: str
     body: bytes
     status_code: int
+
 
     def bytes(self, conn: h11.Connection) -> bytes:
 

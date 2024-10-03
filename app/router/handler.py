@@ -38,32 +38,40 @@ class Router:
         return parse_qs(parsed_url.query)
     
 
-    def parse_get(self):
-        pass
-
-
-    async def _process_request(self, request: 'message.Request'):
-        return
-        # match request.method:
-        #     case "GET":
-        #         args, callable = pass
-        #     case "POST":
-        #         args, callable = pass
-        
-
+    def parse_get(self, request: message.Request):
         url_path = request.target.split("?")[0]
         path_with_method = f"{request.method}{url_path}"
 
-        if path_with_method not in self.routes:
-            return response.method_not_supported()
-
+        if not path_with_method in self.routes.keys():
+            return None, None, "Path Not found"
+        
         callable = self.routes[path_with_method]
         query_params = self._parse_query_params(request.target)
 
+        return query_params, callable, None
+
+
+    def parse_post(self, request: message.Request):
+        pass
+
+
+    async def _process_request(self, request: message.Request):
+
+
+        match request.method:
+            case "GET":
+                args, callable, err = self.parse_get(request)
+            case "POST":
+                args, callable, err = self.parse_post(request)
+        
+        if err != None:
+            logging.error(err)
+            return response.path_not_found()
+
         if asyncio.iscoroutinefunction(callable):
-            return await callable(request, query_params)
+            return await callable(request, args)
         else:
-            return callable(request, query_params)
+            return callable(request, args)
 
 
     def _method_supported(self, method: str) -> bool:

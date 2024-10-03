@@ -24,3 +24,13 @@ def method_not_supported() -> message.Response:
         body = body,
         length=len(body)
     )
+
+def path_not_found() -> message.Response:
+    body = b"Path Not found"
+
+    return message.Response(
+        content_type= "text/plain",
+        status_code=404,
+        body = body,
+        length=len(body)
+    )
