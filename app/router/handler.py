@@ -57,7 +57,6 @@ class Router:
 
     async def _process_request(self, request: message.Request):
 
-
         match request.method:
             case "GET":
                 args, callable, err = self.parse_get(request)
@@ -69,9 +68,14 @@ class Router:
             return response.path_not_found()
 
         if asyncio.iscoroutinefunction(callable):
-            return await callable(request, args)
+            result =  await callable(request, args)
         else:
-            return callable(request, args)
+            result =  callable(request, args)
+
+        if not isinstance(result, message.Response):
+            return response.working_response(result)
+        
+        return result
 
 
     def _method_supported(self, method: str) -> bool:
@@ -79,7 +83,7 @@ class Router:
 
 
     async def handle_request(self, request: 'message.Request') -> 'message.Response':
-        print("Received request:", request)
+        logging.debug(f"Request: /{request.method}, Target: {request.target}")
         
         try:
             if not self._method_supported(request.method):

@@ -39,6 +39,9 @@ class WebApp:
                 await self.transport.close()
             except Exception as err:
                 print("Error during transport close:", err)
+                
+        loop = asyncio.get_event_loop()
+        loop.stop()
 
 
     async def manage_request(self, request):
