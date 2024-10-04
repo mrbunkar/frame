@@ -11,8 +11,10 @@ Is a light weight web framework.
 - Successful requests: 10000
 - Failed requests: 0
 - Timed out requests: 0
-  : Code on which test are being run:
-    `from app import app
+  ### Code on which test are being run:
+
+```python
+    from app import app
     from app.http import message
     import json
 
@@ -45,4 +47,5 @@ Is a light weight web framework.
     server.add_route("GET", "/json", json_data)
 
     if __name__ == "__main__":
-        server.run("localhost", 3030)`
+        server.run("localhost", 3030)
+```
