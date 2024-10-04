@@ -8,7 +8,7 @@ import logging
 
 class HttpProtocol(asyncio.Protocol):
 
-    def __init__(self, request_handler, event: asyncio.Event) -> None:
+    def __init__(self, request_handler, event: asyncio.Event,connections) -> None:
         self.h11_conn = h11.Connection(h11.SERVER)
         self.transport = None
         self.request_handler = request_handler
@@ -16,13 +16,16 @@ class HttpProtocol(asyncio.Protocol):
         self.current_request_body = b""
         self.shutdown_event = event
         self.logger = logging.getLogger('HttpProtocol')
+        self.connections = connections
 
     def connection_made(self, transport: asyncio.Transport):
         peername = transport.get_extra_info("peername")
         logging.debug(f"Connection from {peername}")
         self.transport = transport
+        self.connections.add(self.transport)
 
     def data_received(self, data: bytes) -> None:
+        print("Data recieved")
         try:
             self.h11_conn.receive_data(data)
             while True:
@@ -83,6 +86,7 @@ class HttpProtocol(asyncio.Protocol):
                 self.transport.write(data)
                 self.h11_conn.start_next_cycle()
                 self.transport.write_eof()
+                self.transport.write_eof()
 
             except Exception as err:
                 logging.error(f"Error writing to transport: {err}")
@@ -90,8 +94,11 @@ class HttpProtocol(asyncio.Protocol):
         else:
             self.transport.write_eof()
 
-
     def connection_lost(self, exc):
+        logging.info(f"Connection lost {self.transport.get_extra_info('peername')}")
+        self.connections.discard(self.transport)
+        self.transport.close()
+        print("Connections:", len(self.connections))
         if exc:
             print(f"Error: {exc}")
 

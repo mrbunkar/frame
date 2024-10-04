@@ -4,9 +4,6 @@ from .http.transport import HttpTransport
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-class Peer:
-
-    pass
 
 class Transport:
 

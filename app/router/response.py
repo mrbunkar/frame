@@ -4,11 +4,10 @@ import mimetypes
 from typing import Union, Any
  
 
-def create_response(
-    content: Union[str, bytes, dict, Any],
-    status_code: int = 200,
-    content_type: str = None
-) -> message.Response:
+def create_response( content: Union[str, bytes, dict, Any],
+                    status_code: int = 200,
+                    content_type: str = None
+                    ) -> message.Response:
     if isinstance(content, dict):
         body = json.dumps(content).encode('utf-8')
         content_type = content_type or 'application/json'
