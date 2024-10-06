@@ -11,3 +11,9 @@ __pycache__/
 
 .venv
 venv
+
+test.py
+log.txt
+./log.txt
+
+./test.py

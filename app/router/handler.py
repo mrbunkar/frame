@@ -5,6 +5,38 @@ import asyncio
 from typing import Callable, Dict
 from urllib.parse import parse_qs, urlparse
 from app.router import response
+from dataclasses import dataclass
+from typing import Callable, Tuple, get_type_hints
+
+
+class Route:
+    def __init__(self,method: str, endpoint: Callable) -> None:
+        self.method = method
+        self._callable = endpoint
+        self._get_func_types()
+
+    def _get_func_types(self) -> None:
+        types: dict = get_type_hints(self._callable)
+
+        return_types = types['return']
+        self._parameter_types = {}
+        for key, value in types:
+            if key != "return":
+                self._parameter_types[key] = value
+
+
+        
+
+    async def run(self, *args, **kwargs) -> message.Response:
+
+        if asyncio.iscoroutinefunction(self._callable):
+            result = await self._callable(args, kwargs)
+        else:
+            result = self._callable(args, kwargs)
+
+    def handle(self, request: message.Request):
+        pass
+        
 
 class Router:
 
