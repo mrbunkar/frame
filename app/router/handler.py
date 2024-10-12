@@ -7,35 +7,9 @@ from urllib.parse import parse_qs, urlparse
 from app.router import response
 from dataclasses import dataclass
 from typing import Callable, Tuple, get_type_hints
+from .routes import Route,GetRoute
 
-
-class Route:
-    def __init__(self,method: str, endpoint: Callable) -> None:
-        self.method = method
-        self._callable = endpoint
-        self._get_func_types()
-
-    def _get_func_types(self) -> None:
-        types: dict = get_type_hints(self._callable)
-
-        return_types = types['return']
-        self._parameter_types = {}
-        for key, value in types:
-            if key != "return":
-                self._parameter_types[key] = value
-
-
-        
-
-    async def run(self, *args, **kwargs) -> message.Response:
-
-        if asyncio.iscoroutinefunction(self._callable):
-            result = await self._callable(args, kwargs)
-        else:
-            result = self._callable(args, kwargs)
-
-    def handle(self, request: message.Request):
-        pass
+#@TODO Debunk the Route classe into GET,POST, UPDATE and DELETE class
         
 
 class Router:
@@ -44,23 +18,52 @@ class Router:
     Implments the route handling and routing logic for the framework
     """
 
+
     def __init__(self) -> None:
         self.routes: Dict[str, Callable] = {}
         self.methods = ["GET", "POST"]
 
 
-    def add_route(self, path_with_method: str, func: Callable):
-        self.routes[path_with_method] = func
+    def add_route(self, full_path: str,route: Route) -> None: 
+       byte = route.encode()
+       self.routes[byte] = route
 
+    @staticmethod
+    def resolve_path(path: str) -> tuple[str, bool]:
+        """
+        Will seperate path and query parameter if any.
+
+        Return: Path and True if query paramtetr availble else False
+
+        example: 
+          1. input: path = /a/b/?id=1, output: /a/b, True
+          2. input: path = /a/c ,      output: /a/c, False
+        """
+        
+        if '<' in path:
+            return path.split('/<')[0], True
+        
+        return path
 
     def add_get(self, path: str, func: Callable):
         path = f"GET{path}"
-        self.add_route(path, func)
+        route = GetRoute(
+            method = "GET",
+            resource=path,
+            endpoint=func
+        )
 
+        self.add_route(route)
 
-    def add_post(self, path: str, func: Callable):
+    def add_post(self, path: str, func: Callable) -> None:
         path = f"POST{path}"
-        self.add_route(path, func)
+        # @TODO: refactore
+        route = Route(
+            method="POST",
+            resource=path,
+            endpoint=func
+        )
+        self.add_route(route)
 
 
     def _parse_query_params(self, url: str) -> dict:
@@ -87,7 +90,8 @@ class Router:
         pass
 
 
-    async def _process_request(self, request: message.Request):
+    async def _process_request(self, request: message.Request) ->  message.Response:
+        
 
         match request.method:
             case "GET":
@@ -95,19 +99,6 @@ class Router:
             case "POST":
                 args, callable, err = self.parse_post(request)
         
-        if err != None:
-            logging.error(err)
-            return response.path_not_found()
-
-        if asyncio.iscoroutinefunction(callable):
-            result =  await callable(request, args)
-        else:
-            result =  callable(request, args)
-
-        if not isinstance(result, message.Response):
-            return response.working_response(result)
-        
-        return result
 
 
     def _method_supported(self, method: str) -> bool:

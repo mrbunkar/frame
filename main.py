@@ -7,6 +7,7 @@ server = app.WebApp()
 def hello_world(request: message.Request, args: dict):
     return "Hello world"
 
+
 def json_data(request: message.Request, args: dict):
     data = {
         "message": "This is a JSON response",
