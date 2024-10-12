@@ -52,10 +52,13 @@ class Route:
 
         if not self._return_types(result):
             return response.server_error()
+        
+        
 
 class GetRoute(Route):
 
     def __init__(self,method: str, resource: str, endpoint: Callable) -> None:
+        super().__init__(method=method, resource=resource, endpoint=endpoint)
         self._unzip_resource()
         self._is_query_path: bool = len(self._parameters) > 0
 
@@ -77,9 +80,31 @@ class GetRoute(Route):
 
                 self._parameters.append(param_name)
 
+    def url_arguments(self, path: str) -> dict:
+
+        args_dict: dict = {}
+        args_str: list = path.split("/?")[1:]
+
+        for arg in args_str:
+            k , v = arg.split(":")
+
+            if v.isdigit():
+                v = int(v)
+            
+            args_dict[k] = v
+
+        return args_dict
 
     def argument_type_check(self, parameter) -> bool:
         pass
 
-    def handle(self, request: message.Request):
+    async def handle(self, request: message.Request):
+        
+        args = self.url_arguments(self, request.target)
+
+        result = await self.run()
+
+        pass
+
+    def creat_response(self) -> message.Response:
         pass
