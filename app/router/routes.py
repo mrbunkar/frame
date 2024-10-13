@@ -101,10 +101,9 @@ class GetRoute(Route):
     async def handle(self, request: message.Request):
         
         args = self.url_arguments(self, request.target)
-
         result = await self.run()
 
         pass
 
-    def creat_response(self) -> message.Response:
+    def create_response(self) -> message.Response:
         pass
