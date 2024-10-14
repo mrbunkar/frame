@@ -3,117 +3,13 @@ from typing import Callable,get_type_hints
 from app.http import message
 from app.router import response
 import logging
+import json
 
-
-# class Route:
-
-#     def __init__(self, method: str, resource: str, endpoint: Callable) -> None:
-#         self.method: str = method
-#         self.path: str = resource
-#         self._callable: Callable = endpoint
-#         self._parameters: list = []
-#         self._get_func_types()
-#         self._is_query_path: bool = None
-    
-#     def encode(self) -> bytes:
-#         return b" ".join(
-#             self.method.encode(),
-#             self.path.encode(),
-#             self._is_query_path
-#         )
-    
-#     def _get_func_types(self) -> None:
-
-#         types: dict = get_type_hints(self._callable)
-
-#         return_types = types['return']
-#         self._parameter_types = {}
-#         self._return_types = []
-#         for key, value in types:
-#             if key != "return":
-#                 self._parameter_types[key] = value
-
-#         for type in return_types:
-#             self._return_types.append(type)
-
-#     def _return_type_check(self, results) -> bool:
-
-#         """
-#         Check for the return types of callable
-#         """
-#         for value, type in zip(results, self._return_types):
-#             if not isinstance(value, type):
-#                 return False
-           
-#         return True
-
-#     async def run(self, *args, **kwargs) -> message.Response:
-#         if asyncio.iscoroutinefunction(self._callable):
-#             result = await self._callable(args, kwargs)
-#         else:
-#             result = self._callable(args, kwargs)
-
-#         if not self._return_types(result):
-#             return response.server_error()
-        
-        
-
-# class GetRoute(Route):
-
-#     def __init__(self,method: str, resource: str, endpoint: Callable) -> None:
-#         super().__init__(method=method, resource=resource, endpoint=endpoint)
-#         self._unzip_resource()
-#         self._is_query_path: bool = len(self._parameters) > 0
-
-#     def _unzip_resource(self):
-
-#         """
-#         /price/<float:value>/<id> => value,id
-#         """
-#         segments = self.path.split("<")
-          
-#         for segment in segments:
-#             if '>' in segment:
-#                 param_part = segment.split(">")[0]
-
-#                 if ':' in param_part:
-#                     param_name = param_part.split(":")[1]      
-#                 else:
-#                     param_name = param_part
-
-#                 self._parameters.append(param_name)
-
-#     def url_arguments(self, path: str) -> dict:
-
-#         args_dict: dict = {}
-#         args_str: list = path.split("/?")[1:]
-
-#         for arg in args_str:
-#             k , v = arg.split(":")
-
-#             if v.isdigit():
-#                 v = int(v)
-            
-#             args_dict[k] = v
-
-#         return args_dict
-
-#     def argument_type_check(self, parameter) -> bool:
-#         pass
-    
-#     async def handle(self, request: message.Request):
-        
-#         args = self.url_arguments(self, request.target)
-#         result = await self.run()
-        
-#         pass
-    
-#     def create_response(self) -> message.Response:
-#         pass
-
-def url_hash(method: str, url: str):
-
-
+def url_hash(method: str, url: str) -> bytes:
+    """
+    Given a URL and method will give Hash of the URL.
+    @TODO: for only giving encoded string
+    """
     pass
 
 class AbstractRoute:
@@ -161,11 +57,25 @@ class GetRoute(AbstractRoute):
                 for args in arguments:
                     k, v = args.split(":")[0], args.split(":")[1]
                     self._arguments[k] = v
-            else:
+            elif ":" in segment:
                 k, v = segment.split(":")[0], segment.split(":")[1]
                 self._arguments[k] = v
+            else:
+                raise TypeError
+            
 
-    async def handle_request(self, request: message.Request):
+    def _arguments_validation(self) -> bool:
+        for k in self._arguments: 
+            if not k in self._parameters:
+                return False
+            
+            v: str = self._arguments[k]
+            if v.isdigit():
+                v = int(v)
+
+        return True
+
+    async def handle_request(self, request: message.Request) -> message.Response:
         method = request.method
         
         if method != "GET":
@@ -173,6 +83,47 @@ class GetRoute(AbstractRoute):
             return response.server_error()
         
         # URL Arguments checking
+        try:
+            self._extract_arguments(request.target)
+        except Exception as err:
+            logging.error("URL arguments formating is wrong")
+            return response.bad_request()
+        
+        if not self._arguments_validation():
+            logging.error("Unexpected URL Arguments")
+            return response.bad_request()
+        
+        result = await self.excute_callable(self._arguments)
+
+        if isinstance(result, message.Response):
+            return result
+        
+        return self.create_response(result)
+    
+    def create_response(self, results) -> message.Response:
+        
+        if len(results) > 2 :
+            logging.error(
+                f"Callable function returns {len(results)}. Expected: 2"
+            )
+            return response.server_error()
+        
+        if len(results) == 1:
+            result, status_code = results, 200
+        else:
+            result, status_code = results[0], results[1]
+
+        if isinstance(result, dict):
+            result_object = json.dump(result)
+            content_type = "" 
+        else:
+            result_object = result.encode()
+
+        #@TODO: check for content type
+        return message.Response(
+            content_type="",
+            length=len(result_object)
+        )
         
     
     async def excute_callable(self, **args):
