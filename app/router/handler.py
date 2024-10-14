@@ -103,7 +103,7 @@ class Router:
 
     def _method_supported(self, method: str) -> bool:
         return method in self.methods
-
+    
 
     async def handle_request(self, request: 'message.Request') -> 'message.Response':
         logging.debug(f"Request: /{request.method}, Target: {request.target}")
