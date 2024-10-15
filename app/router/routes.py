@@ -10,7 +10,29 @@ def url_hash(method: str, url: str) -> bytes:
     Given a URL and method will give Hash of the URL.
     @TODO: for only giving encoded string
     """
-    pass
+    path: str
+    path, is_query = resolve_path(url)
+    return " ".join(
+        method.encode(),
+        path.encode(),
+        is_query
+    )
+
+def resolve_path(path: str) -> tuple[str, bool]:
+        """
+        Will seperate path and query parameter if any.
+
+        Return: Path and True if query paramtetr availble else False
+
+        example: 
+          1. input: path = /a/b/?id=1, output: /a/b, True
+          2. input: path = /a/c,      output: /a/c, False
+        """
+        
+        if '<' in path:
+            return path.split('/<')[0], True
+        
+        return path, False
 
 class AbstractRoute:
 
@@ -39,6 +61,12 @@ class GetRoute(AbstractRoute):
         self.register_url() # Registering URL
 
         self._is_query_path: bool = len(self._parameters) > 0
+
+    def encode(self):
+        return " ".join(
+            self.method,
+            
+        )
 
     def register_url(self):
         self._unzip_path()
@@ -114,15 +142,18 @@ class GetRoute(AbstractRoute):
             result, status_code = results[0], results[1]
 
         if isinstance(result, dict):
-            result_object = json.dump(result)
-            content_type = "" 
+            result_object = json.dump(result) 
+            content_type = "application/json"
         else:
-            result_object = result.encode()
+            result_object = result
+            content_type = "text/plain"
 
         #@TODO: check for content type
         return message.Response(
-            content_type="",
-            length=len(result_object)
+            content_type=content_type,
+            length=len(result_object.encode()),
+            body= result_object.encode(),
+            status_code= status_code
         )
         
     
@@ -158,3 +189,9 @@ class GetRoute(AbstractRoute):
                     param_name = param_part
                 
                 self._parameters.append(param_name)
+
+
+class PostRoute(AbstractRoute):
+
+    def __init__(self, method: str, path: str, endpoint: Callable[..., Any]) -> None:
+        pass

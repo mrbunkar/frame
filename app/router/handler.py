@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 from app.router import response
 from dataclasses import dataclass
 from typing import Callable, Tuple, get_type_hints
-from .routes import Route,GetRoute
+from .routes import PostRoute,GetRoute, AbstractRoute
 
 #@TODO Debunk the Route classe into GET,POST, UPDATE and DELETE class
         
@@ -24,26 +24,9 @@ class Router:
         self.methods = ["GET", "POST"]
 
 
-    def add_route(self, full_path: str,route: Route) -> None: 
+    def add_route(self, full_path: str,route: AbstractRoute) -> None: 
        byte = route.encode()
        self.routes[byte] = route
-
-    @staticmethod
-    def resolve_path(path: str) -> tuple[str, bool]:
-        """
-        Will seperate path and query parameter if any.
-
-        Return: Path and True if query paramtetr availble else False
-
-        example: 
-          1. input: path = /a/b/?id=1, output: /a/b, True
-          2. input: path = /a/c ,      output: /a/c, False
-        """
-        
-        if '<' in path:
-            return path.split('/<')[0], True
-        
-        return path
 
     def add_get(self, path: str, func: Callable):
         path = f"GET{path}"
@@ -58,7 +41,7 @@ class Router:
     def add_post(self, path: str, func: Callable) -> None:
         path = f"POST{path}"
         # @TODO: refactore
-        route = Route(
+        route = PostRoute(
             method="POST",
             resource=path,
             endpoint=func
@@ -92,6 +75,9 @@ class Router:
 
     async def _process_request(self, request: message.Request) ->  message.Response:
         
+        path, is_query = self.resolve_path(request.target)
+        hashPath = 
+
 
         match request.method:
             case "GET":
@@ -103,7 +89,7 @@ class Router:
 
     def _method_supported(self, method: str) -> bool:
         return method in self.methods
-    
+
 
     async def handle_request(self, request: 'message.Request') -> 'message.Response':
         logging.debug(f"Request: /{request.method}, Target: {request.target}")
