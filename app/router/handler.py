@@ -6,8 +6,8 @@ from typing import Callable, Dict
 from urllib.parse import parse_qs, urlparse
 from app.router import response
 from dataclasses import dataclass
-from typing import Callable, Tuple, get_type_hints
-from .routes import PostRoute,GetRoute, AbstractRoute
+from typing import Callable
+from .routes import PostRoute,GetRoute, AbstractRoute, url_hash
 
 #@TODO Debunk the Route classe into GET,POST, UPDATE and DELETE class
         
@@ -18,32 +18,28 @@ class Router:
     Implments the route handling and routing logic for the framework
     """
 
-
     def __init__(self) -> None:
         self.routes: Dict[str, Callable] = {}
         self.methods = ["GET", "POST"]
 
-
-    def add_route(self, full_path: str,route: AbstractRoute) -> None: 
+    def add_route(self,route: AbstractRoute) -> None: 
        byte = route.encode()
        self.routes[byte] = route
 
     def add_get(self, path: str, func: Callable):
-        path = f"GET{path}"
         route = GetRoute(
             method = "GET",
-            resource=path,
+            path=path,
             endpoint=func
         )
 
         self.add_route(route)
 
     def add_post(self, path: str, func: Callable) -> None:
-        path = f"POST{path}"
         # @TODO: refactore
         route = PostRoute(
             method="POST",
-            resource=path,
+            path=path,
             endpoint=func
         )
         self.add_route(route)
@@ -74,25 +70,22 @@ class Router:
 
 
     async def _process_request(self, request: message.Request) ->  message.Response:
-        
-        path, is_query = self.resolve_path(request.target)
-        hashPath = 
+        logging.debug(f"New Request: ,{request.id}")
 
+        hashPath = url_hash(method=request.method, url = request.target)
+        # @TODO coruotine safe 
+        if not hashPath in self.routes.keys():
+            return response.bad_request()
 
-        match request.method:
-            case "GET":
-                args, callable, err = self.parse_get(request)
-            case "POST":
-                args, callable, err = self.parse_post(request)
-        
-
+        route: AbstractRoute = self.routes[hashPath]
+        return await route.handle_request(request)
 
     def _method_supported(self, method: str) -> bool:
         return method in self.methods
 
 
     async def handle_request(self, request: 'message.Request') -> 'message.Response':
-        logging.debug(f"Request: /{request.method}, Target: {request.target}")
+        logging.debug(f"Request: {request.method}, Target: {request.target}")
         
         try:
             if not self._method_supported(request.method):

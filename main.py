@@ -4,17 +4,17 @@ import json
 
 server = app.WebApp()
 
-def hello_world(request: message.Request, args: dict):
+def hello_world(args: dict):
     return "Hello world"
 
-
-def json_data(request: message.Request, args: dict):
+def json_data(args: dict):
+    print("Data sending")
     data = {
         "message": "This is a JSON response",
         "numbers": [1, 2, 3, 4, 5],
         "boolean": True
     }
-    json_body = json.dumps(data).encode('utf-8')
+    json_body = json.dumps(data)
     
     return json_body
 

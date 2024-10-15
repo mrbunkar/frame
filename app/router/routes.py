@@ -12,11 +12,11 @@ def url_hash(method: str, url: str) -> bytes:
     """
     path: str
     path, is_query = resolve_path(url)
-    return " ".join(
-        method.encode(),
-        path.encode(),
-        is_query
-    )
+    return "".join(
+        [method,
+        path,
+        str(is_query)]
+    ).encode()
 
 def resolve_path(path: str) -> tuple[str, bool]:
         """
@@ -48,7 +48,7 @@ class AbstractRoute:
     def register_url(self):
         return NotImplementedError
     
-    async def handle_request(self):
+    async def handle_request(self)-> message.Response:
         return NotImplementedError
 
 
@@ -63,10 +63,11 @@ class GetRoute(AbstractRoute):
         self._is_query_path: bool = len(self._parameters) > 0
 
     def encode(self):
-        return " ".join(
-            self.method,
-            
-        )
+        return "".join(
+            [self.method,
+            self.path,
+            str(self._is_query_path)]
+        ).encode()
 
     def register_url(self):
         self._unzip_path()
@@ -78,15 +79,16 @@ class GetRoute(AbstractRoute):
         """
         segments = path.split("/?")[1:]
         self._arguments: dict = {}
-
+        print(segments)
         for segment in segments:
+            print(segment)
             if "&" in segment:
                 arguments = [value for value in segment.split("&")]
                 for args in arguments:
-                    k, v = args.split(":")[0], args.split(":")[1]
+                    k, v = args.split("=")[0], args.split("=")[1]
                     self._arguments[k] = v
-            elif ":" in segment:
-                k, v = segment.split(":")[0], segment.split(":")[1]
+            elif "=" in segment:
+                k, v = segment.split("=")[0], segment.split("=")[1]
                 self._arguments[k] = v
             else:
                 raise TypeError
@@ -107,7 +109,7 @@ class GetRoute(AbstractRoute):
         method = request.method
         
         if method != "GET":
-            logging.ERROR(f"Method expected GET, but got {method}")
+            logging.error(f"Method expected GET, but got {method}")
             return response.server_error()
         
         # URL Arguments checking
@@ -121,15 +123,18 @@ class GetRoute(AbstractRoute):
             logging.error("Unexpected URL Arguments")
             return response.bad_request()
         
+        
         result = await self.excute_callable(self._arguments)
-
+        
         if isinstance(result, message.Response):
             return result
-        
+        if not isinstance(result, tuple):
+            result = [result]
+
         return self.create_response(result)
     
     def create_response(self, results) -> message.Response:
-        
+        print("Results", results)
         if len(results) > 2 :
             logging.error(
                 f"Callable function returns {len(results)}. Expected: 2"
@@ -137,40 +142,25 @@ class GetRoute(AbstractRoute):
             return response.server_error()
         
         if len(results) == 1:
-            result, status_code = results, 200
+            result, status_code = results[0], 200
         else:
             result, status_code = results[0], results[1]
 
         if isinstance(result, dict):
             result_object = json.dump(result) 
-            content_type = "application/json"
         else:
             result_object = result
-            content_type = "text/plain"
 
-        #@TODO: check for content type
-        return message.Response(
-            content_type=content_type,
-            length=len(result_object.encode()),
-            body= result_object.encode(),
-            status_code= status_code
+        return response.working_response(
+            output=result_object,
+            status_code=status_code
         )
         
-    
-    async def excute_callable(self, **args):
-        
+    async def excute_callable(self, args: dict):
         if asyncio.iscoroutinefunction(self.callable):
-            return await self.callable(**args)
+            return await self.callable(args)
         else:
-            return self.callable(**args)
-
-    def encode(self):
-        # We can using Hashing algorithim also
-        return b" ".join(
-            self.method,
-            self._absolute_path,
-            self._is_query_path
-        )
+            return self.callable(args)
 
     def _unzip_path(self) -> None:
 
@@ -193,5 +183,5 @@ class GetRoute(AbstractRoute):
 
 class PostRoute(AbstractRoute):
 
-    def __init__(self, method: str, path: str, endpoint: Callable[..., Any]) -> None:
+    def __init__(self, method: str, path: str, endpoint: Callable) -> None:
         pass

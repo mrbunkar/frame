@@ -29,8 +29,8 @@ def create_response( content: Union[str, bytes, dict, Any],
     )
 
 
-def working_response(output: Any) -> message.Response:
-    return create_response(output)
+def working_response(output: Any, status_code: int = 200) -> message.Response:
+    return create_response(output, status_code=status_code)
 
 
 def server_error() -> message.Response:
@@ -42,8 +42,8 @@ def not_supported_response() -> message.Response:
 method_not_supported = not_supported_response
 
 def bad_request() -> message.Response:
-
     return create_response("Bad Request", 400)
+
 
 def path_not_found() -> message.Response:
     return create_response("Path Not Found", status_code=404)
