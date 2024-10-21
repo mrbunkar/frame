@@ -30,8 +30,16 @@ async def test_get(num_requests, timeout):
     async with aiohttp.ClientSession() as session:
         tasks = []
         for i in range(num_requests):
-            task = asyncio.create_task(fetch(session, "http://localhost:3030/json", i+1, timeout))
-            tasks.append(task)
+            for j in range(i,i+1000):
+                task = asyncio.create_task(fetch(session, "http://localhost:3030/json", i+1, timeout))
+                tasks.append(task)
+
+                if j >= num_requests:
+                    i = j
+                    break
+            i = i + 1000
+            time.sleep(0.2)
+        
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
     
@@ -49,7 +57,7 @@ async def test_get(num_requests, timeout):
     logging.info(f"Timed out requests: {timeouts}")
 
 async def main():
-    num_requests = 10000
+    num_requests = 100000
     timeout = 10  # timeout in seconds
     logging.info(f"Starting test with {num_requests} requests and {timeout} second timeout")
     await test_get(num_requests, timeout)

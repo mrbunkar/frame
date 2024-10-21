@@ -8,8 +8,6 @@ from app.router import response
 from dataclasses import dataclass
 from typing import Callable
 from .routes import PostRoute,GetRoute, AbstractRoute, url_hash
-
-#@TODO Debunk the Route classe into GET,POST, UPDATE and DELETE class
         
 
 class Router:
@@ -32,42 +30,15 @@ class Router:
             path=path,
             endpoint=func
         )
-
         self.add_route(route)
 
     def add_post(self, path: str, func: Callable) -> None:
-        # @TODO: refactore
         route = PostRoute(
             method="POST",
             path=path,
             endpoint=func
         )
         self.add_route(route)
-
-
-    def _parse_query_params(self, url: str) -> dict:
-        """Extract query parameters from the URL."""
-
-        parsed_url = urlparse(url)
-        return parse_qs(parsed_url.query)
-    
-
-    def parse_get(self, request: message.Request):
-        url_path = request.target.split("?")[0]
-        path_with_method = f"{request.method}{url_path}"
-
-        if not path_with_method in self.routes.keys():
-            return None, None, "Path Not found"
-        
-        callable = self.routes[path_with_method]
-        query_params = self._parse_query_params(request.target)
-
-        return query_params, callable, None
-
-
-    def parse_post(self, request: message.Request):
-        pass
-
 
     async def _process_request(self, request: message.Request) ->  message.Response:
         logging.debug(f"New Request: ,{request.id}")
